@@ -4,11 +4,12 @@ class Day2 : ICodingProblem
 {
     public void Run()
     {
+        // Part 1
         var sum = 0;
         foreach (var round in File.ReadAllLines("Problems\\Day02\\input.txt"))
         {
-            var opponent = Parse(round.Substring(0, 1));
-            var mine = Parse(round.Substring(2, 1));
+            var opponent = ParseHandShape(round.Substring(0, 1));
+            var mine = ParseHandShape(round.Substring(2, 1));
             var result = GetResult(mine, opponent);
             if (result == Result.Win)
                 sum += 6;
@@ -17,8 +18,24 @@ class Day2 : ICodingProblem
             sum += (int)mine + 1;
         }
         Console.WriteLine($"Part 1: {sum}");
+        
+        // Part 2
+        sum = 0;
+        foreach (var round in File.ReadAllLines("Problems\\Day02\\input.txt"))
+        {
+            var opponent = ParseHandShape(round.Substring(0, 1));
+            var desiredResult = ParseResult(round.Substring(2, 1));
+            var mine = PickHand(desiredResult, opponent);
+            var result = GetResult(mine, opponent);
+            if (result == Result.Win)
+                sum += 6;
+            else if (result == Result.Draw)
+                sum += 3;
+            sum += (int)mine + 1;
+        }
+        Console.WriteLine($"Part 2: {sum}");
     }
-    
+
     enum Result
     {
         Draw,
@@ -33,7 +50,22 @@ class Day2 : ICodingProblem
         Scissors = 2
     }
 
-    private HandShape Parse(string s)
+    private Result ParseResult(string s)
+    {
+        switch (s.Trim())
+        {
+            case "X":
+                return Result.Loss;
+            case "Y":
+                return Result.Draw;
+            case "Z":    
+                return Result.Win;
+        }
+
+        throw new Exception("Unknown shape");
+    }
+    
+    private HandShape ParseHandShape(string s)
     {
         switch (s.Trim())
         {
@@ -63,6 +95,27 @@ class Day2 : ICodingProblem
                 return Result.Win;
             default:
                 return Result.Loss;
+        }
+    }
+    
+    private HandShape PickHand(Result result, HandShape opponent)
+    {
+        switch (result)
+        {
+            case Result.Draw:
+                return opponent;
+            case Result.Win:
+                var winningHand = (int)opponent + 1;
+                if (winningHand <= 2)
+                    return (HandShape)winningHand;
+                return (HandShape)((int)opponent - 2);
+            case Result.Loss:
+                var losingHand = (int)opponent + 2;
+                if (losingHand <= 2)
+                    return (HandShape)losingHand;
+                return (HandShape)((int)opponent - 1);
+            default:
+                throw new ArgumentOutOfRangeException(nameof(result), result, null);
         }
     }
 }
