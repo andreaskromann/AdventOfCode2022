@@ -62,7 +62,7 @@ class Day2 : ICodingProblem
                 return Result.Win;
         }
 
-        throw new Exception("Unknown shape");
+        throw new Exception("Unknown result");
     }
     
     private HandShape ParseHandShape(string s)
