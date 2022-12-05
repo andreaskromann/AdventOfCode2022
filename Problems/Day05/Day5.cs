@@ -31,14 +31,18 @@ class Day5 : ICodingProblem
             var numberOfCrates = int.Parse(moveParts[1]);
             var from = int.Parse(moveParts[3]);
             var to = int.Parse(moveParts[5]);
+            var buffer = new List<char>();
             for (var i = 0; i < numberOfCrates; i++)
             {
                 var crate = stacks[from - 1].Pop();
-                stacks[to - 1].Push(crate);
+                buffer.Add(crate);
             }
+            buffer.Reverse();
+            foreach (var crate in buffer)
+                stacks[to - 1].Push(crate);
         }
         
-        Console.Write("Part 1: ");
+        Console.Write("Part 2: ");
         foreach (var stack in stacks)
             Console.Write(stack.Peek());
         Console.Write("\n");
