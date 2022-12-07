@@ -2,12 +2,11 @@
 
 class Day7 : ICodingProblem
 {
-    private long sumPart1 = 0;
-    
     public void Run()
     {
         var root = new Directory { Name = "/" };
         var current = root;
+
         foreach (var line in System.IO.File.ReadAllLines("Problems\\Day07\\input.txt"))
         {
             if (line[0] == '$')
@@ -36,12 +35,38 @@ class Day7 : ICodingProblem
                     current.Children.Add(new File { Size = long.Parse(parts[0]), Name = parts[1]});
             }
         }
-
-        CalculateSize(root);
+        long sumPart1 = 0;
+        var usedSpace = CalculateSize(root, ref sumPart1);
         Console.WriteLine($"Part 1: {sumPart1}");
+
+        const long fileSystemSize = 70000000;
+        const long neededFreeSpace = 30000000;
+        var unused = fileSystemSize - usedSpace;
+        var needed = neededFreeSpace - unused;
+        var result = FindDirectory(root, needed);
+        Console.WriteLine($"Part 2: {result.Size}");
     }
 
-    long CalculateSize(Entry entry)
+    static Directory? FindDirectory(Directory directory, long size)
+    {
+        Directory? result = null;
+        foreach (var child in directory.Children)
+        {
+            if (child is Directory d)
+            {
+                var candidate = FindDirectory(d, size);
+                if (candidate is not null && candidate.Size < (result?.Size ?? long.MaxValue))
+                    result = candidate;
+            }
+        }
+
+        if (directory.Size >= size && directory.Size < (result?.Size ?? long.MaxValue))
+            result = directory;
+
+        return result;
+    }
+
+    static long CalculateSize(Entry entry, ref long sum)
     {
         if (entry is File file)
             return file.Size;
@@ -51,17 +76,17 @@ class Day7 : ICodingProblem
             return directory.Size;
         
         foreach (var child in directory.Children)
-            directory.Size += CalculateSize(child);
+            directory.Size += CalculateSize(child, ref sum);
 
         if (directory.Size <= 100000)
-            sumPart1 += directory.Size;
+            sum += directory.Size;
         
         return directory.Size;
     }
 
     abstract class Entry
     {
-        public string Name { get; set; }
+        public string Name { get; init; }
         public long Size { get; set; }
     };
     
@@ -69,7 +94,7 @@ class Day7 : ICodingProblem
 
     class Directory : Entry
     {
-        public Directory? Parent { get; set; }
+        public Directory? Parent { get; init; }
         public List<Entry> Children { get; } = new ();
     }
 }
