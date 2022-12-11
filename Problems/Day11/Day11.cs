@@ -8,10 +8,36 @@ class Day11 : ICodingProblem
         var monkeys = input.Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(ParseMonkey)
             .ToArray();
-        
-        Console.WriteLine($"Total number of items: {monkeys.Sum(x => x.Items.Count)}");
 
-        for (var round = 0; round < 20; round++)
+        Play(20, monkeys, 0);
+        var monkeyBusinessLevel = CalcMonkeyBusinessLevel(monkeys);
+        Console.WriteLine($"Part 1: {monkeyBusinessLevel}");
+        
+        monkeys = input.Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(ParseMonkey)
+            .ToArray();
+        
+        // https://en.wikipedia.org/wiki/Least_common_multiple
+        var lcm = monkeys.Select(x => x.Divisor).Aggregate((x, y) => x * y);
+        
+        Play(10000, monkeys, lcm);
+        monkeyBusinessLevel = CalcMonkeyBusinessLevel(monkeys);
+        Console.WriteLine($"Part 2: {monkeyBusinessLevel}");
+    }
+
+    private static long CalcMonkeyBusinessLevel(Monkey[] monkeys)
+    {
+        var monkeyBusinessLevel = monkeys
+            .Select(x => x.Inspections)
+            .OrderDescending()
+            .Take(2)
+            .Aggregate((x, y) => x * y);
+        return monkeyBusinessLevel;
+    }
+
+    private static void Play(int rounds, Monkey[] monkeys, int lcm)
+    {
+        for (var round = 0; round < rounds; round++)
         {
             foreach (var monkey in monkeys)
             {
@@ -19,22 +45,15 @@ class Day11 : ICodingProblem
                 {
                     monkey.Inspections++;
                     var worryLevel = monkey.Operation(item);
-                    worryLevel /= 3;
+                    if (lcm == 0)
+                        worryLevel /= 3;
+                    else
+                        worryLevel %= lcm; // Keep worry levels manageable without messing with division tests
                     var to = monkey.Test(worryLevel);
                     monkeys[to].Items.Enqueue(worryLevel);
                 }
             }
         }
-
-        foreach (var monkey in monkeys)
-            Console.WriteLine($"Monkey inspected items {monkey.Inspections} times.");
-        
-        var monkeyBusinessLevel = monkeys
-            .Select(x => x.Inspections)
-            .OrderDescending()
-            .Take(2)
-            .Aggregate((x, y) => x * y);
-        Console.WriteLine($"Part 1: {monkeyBusinessLevel}");
     }
 
     private Monkey ParseMonkey(string s)
@@ -65,24 +84,26 @@ class Day11 : ICodingProblem
                 operation = x => x + int.Parse(operationParts[1]);
         }
 
-        var testDivNumber = long.Parse(lines[3].Substring(lines[3].IndexOf("by", StringComparison.Ordinal) + 3));
-        var trueMonkey = long.Parse(lines[4].Substring(lines[4].IndexOf("monkey", StringComparison.Ordinal) + 7));
-        var falseMonkey = long.Parse(lines[5].Substring(lines[5].IndexOf("monkey", StringComparison.Ordinal) + 7));
-        Func<long, long> test = x => x % testDivNumber == 0 ? trueMonkey : falseMonkey;
+        var testDivNumber = int.Parse(lines[3].Substring(lines[3].IndexOf("by", StringComparison.Ordinal) + 3));
+        var trueMonkey = int.Parse(lines[4].Substring(lines[4].IndexOf("monkey", StringComparison.Ordinal) + 7));
+        var falseMonkey = int.Parse(lines[5].Substring(lines[5].IndexOf("monkey", StringComparison.Ordinal) + 7));
+        Func<long, int> test = x => x % testDivNumber == 0 ? trueMonkey : falseMonkey;
         
         return new Monkey
         {
             Items = new Queue<long>(items),
             Operation = operation,
-            Test = test
+            Test = test,
+            Divisor = testDivNumber
         };
     }
 
     class Monkey
     {
-        public int Inspections;
+        public long Inspections;
         public Queue<long> Items { get; init; }
         public Func<long,long> Operation { get; init; }
-        public Func<long,long> Test { get; init; }
+        public Func<long,int> Test { get; init; }
+        public int Divisor;
     }
 }
