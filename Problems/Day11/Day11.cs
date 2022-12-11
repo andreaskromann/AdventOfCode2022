@@ -18,6 +18,7 @@ class Day11 : ICodingProblem
             .ToArray();
         
         // https://en.wikipedia.org/wiki/Least_common_multiple
+        // The divisors are all prime numbers, so lcm is just multiplying them together.
         var lcm = monkeys.Select(x => x.Divisor).Aggregate((x, y) => x * y);
         
         Play(10000, monkeys, lcm);
