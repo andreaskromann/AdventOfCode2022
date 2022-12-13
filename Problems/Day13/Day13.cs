@@ -6,6 +6,7 @@ class Day13 : ICodingProblem
     {
         var pairs = File.ReadAllText("Problems\\Day13\\input.txt").Split("\n\n", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         var part1 = new List<int>();
+        var part2 = new List<PacketData>();
         for (var i = 0; i < pairs.Length; i++)
         {
             var pair = pairs[i];
@@ -14,9 +15,25 @@ class Day13 : ICodingProblem
             var packet2 = ParsePacket(packets[1]);
             if (ComparePackets(packet1, packet2) == -1)
                 part1.Add(i + 1);
+            part2.Add(packet1);
+            part2.Add(packet2);
         }
-        Console.WriteLine(string.Join(",", part1));
         Console.WriteLine($"Part 1: {part1.Sum()}");
+
+        var divider1 = new ListData();
+        var divider1Sublist = new ListData();
+        divider1Sublist.Values.Add(new IntegerData { Value = 2 });
+        divider1.Values.Add(divider1Sublist);
+        part2.Add(divider1);
+        var divider2 = new ListData();
+        var divider2Sublist = new ListData();
+        divider2Sublist.Values.Add(new IntegerData { Value = 6 });
+        divider2.Values.Add(divider2Sublist);
+        part2.Add(divider2);
+        part2.Sort(ComparePackets);
+        var d1 = part2.IndexOf(divider1);
+        var d2 = part2.IndexOf(divider2);
+        Console.WriteLine($"Part 2: {(d1 + 1) * (d2 + 1)}");
     }
 
     private int ComparePackets(PacketData left, PacketData right)
