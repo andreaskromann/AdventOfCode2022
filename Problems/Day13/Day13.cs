@@ -12,22 +12,22 @@ class Day13 : ICodingProblem
             var packets = pair.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
             var packet1 = ParsePacket(packets[0]);
             var packet2 = ParsePacket(packets[1]);
-            if (InRightOrder(packet1, packet2) == true)
+            if (ComparePackets(packet1, packet2) == -1)
                 part1.Add(i + 1);
         }
         Console.WriteLine(string.Join(",", part1));
         Console.WriteLine($"Part 1: {part1.Sum()}");
     }
 
-    private bool? InRightOrder(PacketData left, PacketData right)
+    private int ComparePackets(PacketData left, PacketData right)
     {
         if (left is IntegerData leftInt && right is IntegerData rightInt)
         {
             if (leftInt.Value == rightInt.Value)
-                return null;
+                return 0;
             if (leftInt.Value < rightInt.Value)
-                return true;
-            return false;
+                return -1;
+            return 1;
         }
 
         if (left is ListData leftList && right is ListData rightList)
@@ -35,33 +35,33 @@ class Day13 : ICodingProblem
             for (var i = 0; i < leftList.Values.Count; i++)
             {
                 if (rightList.Values.Count <= i)
-                    return false;
+                    return 1;
                 
-                var currentResult = InRightOrder(leftList.Values[i], rightList.Values[i]);
-                if (currentResult is not null)
+                var currentResult = ComparePackets(leftList.Values[i], rightList.Values[i]);
+                if (currentResult != 0)
                     return currentResult;
             }
 
             if (leftList.Values.Count < rightList.Values.Count)
-                return true;
-            return null;
+                return -1;
+            return 0;
         }
 
         if (left is ListData list && right is IntegerData integer)
         {
             var newList = new ListData();
             newList.Values.Add(integer);
-            return InRightOrder(list, newList);
+            return ComparePackets(list, newList);
         }
         
         if (left is IntegerData integer2 && right is ListData list2)
         {
             var newList = new ListData();
             newList.Values.Add(integer2);
-            return InRightOrder(newList, list2);
+            return ComparePackets(newList, list2);
         }
 
-        return null;
+        return 0;
     }
 
     private ListData ParsePacket(string s)
