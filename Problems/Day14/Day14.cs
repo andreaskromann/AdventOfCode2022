@@ -22,8 +22,9 @@ class Day14 : ICodingProblem
         var y_min = positions.SelectMany(x => x.Select(y => y.Y)).Min();
         var x_max = positions.SelectMany(x => x.Select(y => y.X)).Max();
         var y_max = positions.SelectMany(x => x.Select(y => y.Y)).Max();
-        var width = x_max + 3 - x_min;
-        var height = y_max + 2;
+        var min = Math.Min(x_min, 500 - y_max - 1);
+        var width = Math.Max(x_max + 3, 500 + y_max + 3) - min;
+        var height = y_max + 3;
 
         var map = new char[width, height];
         for (var i = 0; i < width; i++)
@@ -34,7 +35,7 @@ class Day14 : ICodingProblem
 
         void MapSet(int x, int y, char c)
         {
-            map[x + 1 - x_min, y] = c;
+            map[x + 1 - min, y] = c;
         }
 
         foreach (var line in positions)
@@ -54,7 +55,10 @@ class Day14 : ICodingProblem
             }
         }
 
-        var sand = new Position(500 + 1 - x_min, 0);
+        for (var x = 0; x < width; x++)
+            map[x, height - 1] = '#';
+
+        var sand = new Position(500 + 1 - min, 0);
         MapSet(500, 0, '+');
         
         Print(map, width, height);
@@ -62,7 +66,6 @@ class Day14 : ICodingProblem
         var unitsOfSand = 0;
         while(sand.Y < height - 1)
         {
-         
             // Fall down
             if (sand.Y < height - 1 && map[sand.X, sand.Y + 1] == '.')
             {
@@ -83,13 +86,18 @@ class Day14 : ICodingProblem
             }
             // Comes at rest
             map[sand.X, sand.Y] = 'o';
-            sand = new Position(500 + 1 - x_min, 0);
             unitsOfSand++;
+            
             //Console.WriteLine($"After {unitsOfSand} units of sand:");
             //Print(map, width, height);
             //Console.WriteLine();
+            
+            // If comes at rest at origin stop
+            if (sand.X == 500 + 1 - min && sand.Y == 0)
+                break;
+            sand = new Position(500 + 1 - min, 0);
         }
-        Console.WriteLine($"Part 1: {unitsOfSand}");
+        Console.WriteLine($"Part 2: {unitsOfSand}");
     }
 
     private static void Print(char[,] map, int width, int height)
